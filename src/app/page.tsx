@@ -1,5 +1,6 @@
 "use client";
 
+import emailjs from "@emailjs/browser";
 import { FormEvent, useState } from "react";
 import styles from "./portfolio.module.css";
 
@@ -17,12 +18,37 @@ const skills = [
 
 export default function Portfolio() {
   const [menu, setMenu] = useState(false);
-  const [sent, setSent] = useState(false);
-  function submit(e: FormEvent<HTMLFormElement>) {
+  const [sending, setSending] = useState(false);
+  const [formMessage, setFormMessage] = useState("Have a question or project in mind? Feel free to reach out. I'd be happy to connect!");
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!e.currentTarget.reportValidity()) return;
-    setSent(true);
-    e.currentTarget.reset();
+    const form = e.currentTarget;
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || !templateId || !publicKey) {
+      setFormMessage("Email delivery isn’t configured yet. Please email christianmorando6@gmail.com directly.");
+      return;
+    }
+
+    const values = new FormData(form);
+    setSending(true);
+    setFormMessage("Sending your message…");
+    try {
+      await emailjs.send(serviceId, templateId, {
+        name: String(values.get("name") ?? ""),
+        email: String(values.get("email") ?? ""),
+        subject: String(values.get("subject") ?? ""),
+        message: String(values.get("message") ?? ""),
+      }, { publicKey });
+      form.reset();
+      setFormMessage("Message sent successfully. Thanks for reaching out!");
+    } catch {
+      setFormMessage("Sorry, your message could not be sent. Please email christianmorando6@gmail.com directly.");
+    } finally {
+      setSending(false);
+    }
   }
   return <main className={styles.page}>
     <header className={styles.header}><a className={styles.logo} href="#home"><span>MCM</span> MARK CHRISTIAN MORANDO<span className={styles.logoDim}> / PORTFOLIO</span></a><button className={styles.menuButton} onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Toggle navigation">☰</button><nav className={`${styles.nav} ${menu ? styles.navOpen : ""}`} aria-label="Main navigation">{[["About","about"],["Experience","experience"],["Projects","projects"],["Contact","contact"]].map(([label,id])=><a key={id} href={`#${id}`} onClick={()=>setMenu(false)}>{label}</a>)}<a className={styles.navContact} href="#contact">Let’s talk <span>↗</span></a></nav></header>
@@ -33,7 +59,7 @@ export default function Portfolio() {
     <section className={styles.section} id="projects"><div className={styles.sectionHead}><span>03 / SELECTED WORK</span><span>PROJECTS & EXPERIMENTS</span></div><div className={styles.projectIntro}><h2>Made to be <span>useful.</span></h2><p>A selection of academic and personal projects exploring accessible technology, practical software, and data.</p></div><div className={styles.projects}>{projects.map(p=><article className={styles.project} key={p.n}><div className={`${styles.projectVisual} ${styles[p.tint]}`}><div className={styles.visualGrid}/><span className={styles.visualIndex}>{p.n} / PROJECT</span><span className={styles.visualIcon}>{p.visual}</span><span className={styles.visualCaption}>{p.type}</span><span className={styles.visualArrow}>↗</span></div><div className={styles.projectInfo}><p className={styles.projectType}>{p.type}</p><h3>{p.title}</h3><p className={styles.projectText}>{p.text}</p><div className={styles.stack}>{p.stack.map(s=><span key={s}>{s}</span>)}</div><div className={styles.projectLinks}><span>Repository link to be added</span><span>↗</span></div></div></article>)}</div></section>
     <section className={styles.section} id="skills"><div className={styles.sectionHead}><span>04 / TOOLKIT</span><span>TOOLS I’M LEARNING & USING</span></div><div className={styles.skillsLayout}><h2>Curiosity is<br/>part of the <span>toolkit.</span></h2><div>{skills.map(([n,title,description])=><div className={styles.skillRow} key={n}><span>{n}</span><h3>{title}</h3><p>{description}</p><b>↗</b></div>)}</div></div></section>
     <section className={styles.section} id="education"><div className={styles.sectionHead}><span>05 / EDUCATION</span><span>FOUNDATIONS</span></div><div className={styles.education}><span className={styles.eduMark}>UPHSL</span><div><p>UNIVERSITY OF PERPETUAL HELP SYSTEM LAGUNA</p><h3>Bachelor of Science in<br/>Computer Engineering</h3></div><span className={styles.eduDate}>COMPUTER ENGINEERING</span></div></section>
-    <section className={styles.contact} id="contact"><div className={styles.sectionHead}><span>06 / CONTACT</span><span>GOOD THINGS START WITH A CONVERSATION</span></div><div className={styles.contactGrid}><div><h2>Have a project<br/>or opportunity?<br/><span>Let’s connect.</span></h2><p>I’m open to conversations about software, engineering, and opportunities to build useful things.</p><div className={styles.contactLinks}><a href="mailto:christianmorando6@gmail.com">CHRISTIANMORANDO6@GMAIL.COM ↗</a><a href="https://github.com/tianmor" target="_blank" rel="noreferrer">GITHUB.COM/TIANMOR ↗</a><a href="https://www.linkedin.com/in/mark-christian-morando-7a72502a9" target="_blank" rel="noreferrer">LINKEDIN PROFILE ↗</a></div></div><form className={styles.form} onSubmit={submit}><label>Your name<input name="name" required minLength={2} placeholder="Jane Smith"/></label><label>Email address<input name="email" type="email" required placeholder="jane@example.com"/></label><label>Subject<input name="subject" required minLength={3} placeholder="A little about your message"/></label><label>Message<textarea name="message" required minLength={10} rows={4} placeholder="What would you like to talk about?"/></label><button type="submit">Send message <span>↗</span></button><p role="status">{sent ? "Thanks — your message passed validation. This demo form does not send email yet; please use the email link." : "Form preview only — no email service is connected."}</p></form></div></section>
+    <section className={styles.contact} id="contact"><div className={styles.sectionHead}><span>06 / CONTACT</span><span>GOOD THINGS START WITH A CONVERSATION</span></div><div className={styles.contactGrid}><div><h2>Have a project<br/>or opportunity?<br/><span>Let’s connect.</span></h2><p>I’m open to conversations about software, engineering, and opportunities to build useful things.</p><div className={styles.contactLinks}><a href="mailto:christianmorando6@gmail.com">CHRISTIANMORANDO6@GMAIL.COM ↗</a><a href="https://github.com/tianmor" target="_blank" rel="noreferrer">GITHUB.COM/TIANMOR ↗</a><a href="https://www.linkedin.com/in/mark-christian-morando-7a72502a9" target="_blank" rel="noreferrer">LINKEDIN PROFILE ↗</a></div></div><form className={styles.form} onSubmit={submit}><label>Your name<input name="name" required minLength={2} placeholder="Jane Smith"/></label><label>Email address<input name="email" type="email" required placeholder="jane@example.com"/></label><label>Subject<input name="subject" required minLength={3} placeholder="A little about your message"/></label><label>Message<textarea name="message" required minLength={10} rows={4} placeholder="What would you like to talk about?"/></label><button type="submit" disabled={sending}>{sending ? "Sending…" : "Send message"} <span>↗</span></button><p role="status" aria-live="polite">{formMessage}</p></form></div></section>
     <footer className={styles.footer}><a className={styles.logo} href="#home"><span>MCM</span> MARK CHRISTIAN MORANDO</a><p>DESIGNED WITH INTENTION · BUILT WITH CURIOSITY</p><a href="#home">BACK TO TOP ↑</a></footer>
   </main>;
 }

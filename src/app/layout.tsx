@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { site } from "../data/portfolio";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Mark Christian Morando | Computer Engineer & Developer",
-  description: "Portfolio of Christian, a Computer Engineer and Test Engineer interested in software development, automation, and AI.",
+  title: site.title,
+  description: site.description,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
